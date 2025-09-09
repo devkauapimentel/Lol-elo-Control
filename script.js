@@ -323,7 +323,7 @@
             // Desenhar gráfico
             if (lpHistory.length > 1) {
                 ctx.strokeStyle = '#c89b3c';
-                ctx.lineWidth = 5;
+                ctx.lineWidth = 3;
                 ctx.beginPath();
                 
                 lpHistory.forEach((lp, index) => {
