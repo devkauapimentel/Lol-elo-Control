@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LoL Elo Tracker - Controle sua Evolução</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f1419 0%, #1e2328 100%);
+            color: #cdbe91;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            background: linear-gradient(45deg, #c89b3c, #f0e6d2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(30, 35, 40, 0.95);
+            border: 1px solid #3c4043;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .card h2 {
+            color: #f0e6d2;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            border-bottom: 2px solid #c89b3c;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #cdbe91;
+            font-size: 0.9rem;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 8px 12px;
+            background: #0a0e1a;
+            border: 1px solid #3c4043;
+            border-radius: 5px;
+            color: #f0e6d2;
+            font-size: 14px;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #c89b3c;
+            box-shadow: 0 0 5px rgba(200, 155, 60, 0.3);
+        }
+
+        button {
+            background: linear-gradient(135deg, #c89b3c, #a68b2f);
+            color: #0c1f1f;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(200, 155, 60, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #d32f2f, #b71c1c);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #388e3c, #2e7d32);
+            color: white;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #0a0e1a;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 10px 0;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #c89b3c, #f0e6d2);
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #0c1f1f;
+            font-weight: bold;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .stat-item {
+            background: #0a0e1a;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #c89b3c;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #8e8e8e;
+        }
+
+        .history-item {
+            background: #0a0e1a;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .win {
+            color: #4caf50;
+        }
+
+        .loss {
+            color: #f44336;
+        }
+
+        canvas {
+            width: 100% !important;
+            height: 300px !important;
+            background: #0a0e1a;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+
+        .motivation {
+            background: linear-gradient(135deg, #1e3a5f, #2e5090);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+            font-style: italic;
+            color: #f0e6d2;
+            font-size: 1.1rem;
+        }
+
+        .elo-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin: 5px;
+        }
+
+        .iron { background: #5c5c5c; }
+        .bronze { background: #cd7f32; }
+        .silver { background: #c0c0c0; color: #333; }
+        .gold { background: #ffd700; color: #333; }
+        .platinum { background: #00bfa5; }
+        .emerald { background: #50c878; }
+        .diamond { background: #b9f2ff; color: #333; }
+        .master { background: #9b59b6; }
+        .grandmaster { background: #e74c3c; }
+        .challenger { background: linear-gradient(45deg, #ffd700, #ff6b6b); }
+
+        .file-controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .file-controls button {
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏆 LoL Elo Tracker 🏆</h1>
+        
+        <!-- Controles de Arquivo -->
+        <div class="file-controls">
+            <button onclick="exportData()" title="Exportar dados">💾 Exportar</button>
+            <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData(event)">
+            <button onclick="document.getElementById('importFile').click()" title="Importar dados">📁 Importar</button>
+        </div>
+
+        <div class="grid">
+            <!-- Configurações Iniciais -->
+            <div class="card">
+                <h2>⚙️ Configurações Iniciais</h2>
+                <div class="form-group">
+                    <label>Nome de Invocador:</label>
+                    <input type="text" id="summonerName" placeholder="Seu nick no LoL">
+                </div>
+                <div class="form-group">
+                    <label>Elo Atual:</label>
+                    <select id="currentRank">
+                        <option value="">Selecione...</option>
+                        <option value="Iron">Ferro</option>
+                        <option value="Bronze">Bronze</option>
+                        <option value="Silver">Prata</option>
+                        <option value="Gold">Ouro</option>
+                        <option value="Platinum">Platina</option>
+                        <option value="Emerald">Esmeralda</option>
+                        <option value="Diamond">Diamante</option>
+                        <option value="Master">Mestre</option>
+                        <option value="Grandmaster">Grão-Mestre</option>
+                        <option value="Challenger">Desafiante</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Divisão:</label>
+                    <select id="currentDivision">
+                        <option value="IV">IV</option>
+                        <option value="III">III</option>
+                        <option value="II">II</option>
+                        <option value="I">I</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>LP Atual:</label>
+                    <input type="number" id="currentLP" min="0" max="100" value="0">
+                </div>
+                <div class="form-group">
+                    <label>Elo Desejado (Meta de Curto Prazo):</label>
+                    <select id="desiredRank">
+                        <option value="">Selecione...</option>
+                        <option value="Iron">Ferro</option>
+                        <option value="Bronze">Bronze</option>
+                        <option value="Silver">Prata</option>
+                        <option value="Gold">Ouro</option>
+                        <option value="Platinum">Platina</option>
+                        <option value="Emerald">Esmeralda</option>
+                        <option value="Diamond">Diamante</option>
+                        <option value="Master">Mestre</option>
+                        <option value="Grandmaster">Grão-Mestre</option>
+                        <option value="Challenger">Desafiante</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Prazo para Meta (dias):</label>
+                    <input type="number" id="desiredDays" min="1" value="10">
+                </div>
+                <div class="form-group">
+                    <label>Elo dos Sonhos:</label>
+                    <select id="dreamRank">
+                        <option value="">Selecione...</option>
+                        <option value="Iron">Ferro</option>
+                        <option value="Bronze">Bronze</option>
+                        <option value="Silver">Prata</option>
+                        <option value="Gold">Ouro</option>
+                        <option value="Platinum">Platina</option>
+                        <option value="Emerald">Esmeralda</option>
+                        <option value="Diamond">Diamante</option>
+                        <option value="Master">Mestre</option>
+                        <option value="Grandmaster">Grão-Mestre</option>
+                        <option value="Challenger">Desafiante</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Meta de Partidas/Dia:</label>
+                    <input type="number" id="dailyGamesTarget" min="1" value="5">
+                </div>
+                <button onclick="saveSettings()">💾 Salvar Configurações</button>
+            </div>
+
+            <!-- Registro Diário -->
+            <div class="card">
+                <h2>📊 Registro Diário</h2>
+                <div class="form-group">
+                    <label>Data:</label>
+                    <input type="date" id="recordDate" value="">
+                </div>
+                <div class="form-group">
+                    <label>Partidas Jogadas:</label>
+                    <input type="number" id="gamesPlayed" min="0" value="0">
+                </div>
+                <div class="form-group">
+                    <label>Vitórias:</label>
+                    <input type="number" id="wins" min="0" value="0">
+                </div>
+                <div class="form-group">
+                    <label>Derrotas:</label>
+                    <input type="number" id="losses" min="0" value="0">
+                </div>
+                <div class="form-group">
+                    <label>LP Ganhos/Perdidos (use - para perdas):</label>
+                    <input type="number" id="lpChange" value="0">
+                </div>
+                <div class="form-group">
+                    <label>Elo ao Final do Dia:</label>
+                    <select id="endDayRank">
+                        <option value="">Mesmo do início</option>
+                        <option value="Iron">Ferro</option>
+                        <option value="Bronze">Bronze</option>
+                        <option value="Silver">Prata</option>
+                        <option value="Gold">Ouro</option>
+                        <option value="Platinum">Platina</option>
+                        <option value="Emerald">Esmeralda</option>
+                        <option value="Diamond">Diamante</option>
+                        <option value="Master">Mestre</option>
+                        <option value="Grandmaster">Grão-Mestre</option>
+                        <option value="Challenger">Desafiante</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Divisão Final:</label>
+                    <select id="endDayDivision">
+                        <option value="IV">IV</option>
+                        <option value="III">III</option>
+                        <option value="II">II</option>
+                        <option value="I">I</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>LP Final:</label>
+                    <input type="number" id="endDayLP" min="0" max="100" value="0">
+                </div>
+                <button onclick="addDailyRecord()" class="btn-success">➕ Adicionar Registro</button>
+            </div>
+        </div>
+
+        <!-- Progresso e Estatísticas -->
+        <div class="grid">
+            <div class="card">
+                <h2>📈 Progresso</h2>
+                <div>
+                    <label>Meta de Curto Prazo:</label>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="desiredProgress">0%</div>
+                    </div>
+                    <p id="desiredLP" style="text-align: center; color: #8e8e8e;"></p>
+                </div>
+                <div>
+                    <label>Elo dos Sonhos:</label>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="dreamProgress">0%</div>
+                    </div>
+                    <p id="dreamLP" style="text-align: center; color: #8e8e8e;"></p>
+                </div>
+                <div class="stat-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="totalGames">0</div>
+                        <div class="stat-label">Total de Partidas</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="winRate">0%</div>
+                        <div class="stat-label">Taxa de Vitória</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="avgLP">0</div>
+                        <div class="stat-label">Média LP/Partida</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="daysToDesired">-</div>
+                        <div class="stat-label">Dias p/ Meta</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📋 Notas e Estratégias</h2>
+                <div class="form-group">
+                    <textarea id="notes" rows="5" placeholder="Anote suas estratégias, erros e aprendizados..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Mensagem Motivacional:</label>
+                    <input type="text" id="motivationMessage" placeholder="Digite uma mensagem motivacional...">
+                </div>
+                <button onclick="saveNotes()">💾 Salvar Notas</button>
+                <div class="motivation" id="motivationDisplay">
+                    "A cada partida, você está mais próximo do seu objetivo!"
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráfico de Evolução -->
+        <div class="card">
+            <h2>📊 Gráfico de Evolução</h2>
+            <canvas id="evolutionChart"></canvas>
+        </div>
+
+        <!-- Histórico -->
+        <div class="card">
+            <h2>📜 Histórico Recente</h2>
+            <div id="historyList"></div>
+            <button onclick="clearHistory()" class="btn-danger">🗑️ Limpar Histórico</button>
+        </div>
+    </div>
+
+    <script>
+        // Estrutura de dados
+        let appData = {
+            settings: {
+                summonerName: '',
+                currentRank: '',
+                currentDivision: 'IV',
+                currentLP: 0,
+                desiredRank: '',
+                desiredDays: 10,
+                dreamRank: '',
+                dailyGamesTarget: 5
+            },
+            dailyRecords: [],
+            notes: '',
+            motivationMessage: '"A cada partida, você está mais próximo do seu objetivo!"'
+        };
+
+        // Mapeamento de ranks para valores numéricos
+        const rankValues = {
+            'Iron': 1,
+            'Bronze': 2,
+            'Silver': 3,
+            'Gold': 4,
+            'Platinum': 5,
+            'Emerald': 6,
+            'Diamond': 7,
+            'Master': 8,
+            'Grandmaster': 9,
+            'Challenger': 10
+        };
+
+        const divisionValues = {
+            'IV': 1,
+            'III': 2,
+            'II': 3,
+            'I': 4
+        };
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+            updateUI();
+            setToday();
+            drawChart();
+        });
+
+        function setToday() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('recordDate').value = today;
+        }
+
+        // Salvar configurações
+        function saveSettings() {
+            appData.settings = {
+                summonerName: document.getElementById('summonerName').value,
+                currentRank: document.getElementById('currentRank').value,
+                currentDivision: document.getElementById('currentDivision').value,
+                currentLP: parseInt(document.getElementById('currentLP').value) || 0,
+                desiredRank: document.getElementById('desiredRank').value,
+                desiredDays: parseInt(document.getElementById('desiredDays').value) || 10,
+                dreamRank: document.getElementById('dreamRank').value,
+                dailyGamesTarget: parseInt(document.getElementById('dailyGamesTarget').value) || 5
+            };
+            saveData();
+            updateUI();
+            alert('✅ Configurações salvas com sucesso!');
+        }
+
+        // Adicionar registro diário
+        function addDailyRecord() {
+            const date = document.getElementById('recordDate').value;
+            const gamesPlayed = parseInt(document.getElementById('gamesPlayed').value) || 0;
+            const wins = parseInt(document.getElementById('wins').value) || 0;
+            const losses = parseInt(document.getElementById('losses').value) || 0;
+            
+            if (!date) {
+                alert('❌ Por favor, selecione uma data!');
+                return;
+            }
+
+            if (gamesPlayed !== wins + losses) {
+                alert('⚠️ O número de partidas não corresponde ao total de vitórias + derrotas!');
+                return;
+            }
+
+            const record = {
+                date: date,
+                gamesPlayed: gamesPlayed,
+                wins: wins,
+                losses: losses,
+                lpChange: parseInt(document.getElementById('lpChange').value) || 0,
+                endDayRank: document.getElementById('endDayRank').value || appData.settings.currentRank,
+                endDayDivision: document.getElementById('endDayDivision').value,
+                endDayLP: parseInt(document.getElementById('endDayLP').value) || 0,
+                timestamp: new Date().toISOString()
+            };
+
+            appData.dailyRecords.push(record);
+            
+            // Atualizar elo atual com o final do dia
+            if (record.endDayRank) {
+                appData.settings.currentRank = record.endDayRank;
+                appData.settings.currentDivision = record.endDayDivision;
+                appData.settings.currentLP = record.endDayLP;
+            }
+
+            saveData();
+            updateUI();
+            drawChart();
+            clearDailyForm();
+            alert('✅ Registro adicionado com sucesso!');
+        }
+
+        function clearDailyForm() {
+            document.getElementById('gamesPlayed').value = 0;
+            document.getElementById('wins').value = 0;
+            document.getElementById('losses').value = 0;
+            document.getElementById('lpChange').value = 0;
+            document.getElementById('endDayRank').value = '';
+            document.getElementById('endDayDivision').value = 'IV';
+            document.getElementById('endDayLP').value = 0;
+            setToday();
+        }
+
+        // Salvar notas
+        function saveNotes() {
+            appData.notes = document.getElementById('notes').value;
+            appData.motivationMessage = document.getElementById('motivationMessage').value || appData.motivationMessage;
+            saveData();
+            updateUI();
+            alert('✅ Notas salvas com sucesso!');
+        }
+
+        // Calcular LP total necessário
+        function calculateTotalLP(fromRank, fromDiv, fromLP, toRank, toDiv = 'I', toLP = 100) {
+            if (!fromRank || !toRank) return 0;
+            
+            const fromValue = rankValues[fromRank];
+            const toValue = rankValues[toRank];
+            const fromDivValue = divisionValues[fromDiv];
+            const toDivValue = divisionValues[toDiv];
+            
+            let totalLP = 0;
+            
+            // LP para completar divisão atual
+            totalLP += (100 - fromLP);
+            
+            // LP para subir divisões no mesmo elo
+            if (fromRank === toRank) {
+                totalLP += (toDivValue - fromDivValue - 1) * 100;
+                totalLP += toLP;
+            } else {
+                // LP para completar o elo atual
+                totalLP += (4 - fromDivValue) * 100;
+                
+                // LP para elos intermediários (400 LP por elo)
+                totalLP += Math.max(0, (toValue - fromValue - 1) * 400);
+                
+                // LP para o elo de destino
+                totalLP += (toDivValue - 1) * 100 + toLP;
+            }
+            
+            return Math.max(0, totalLP);
+        }
+
+        // Atualizar UI
+        function updateUI() {
+            // Carregar configurações
+            document.getElementById('summonerName').value = appData.settings.summonerName || '';
+            document.getElementById('currentRank').value = appData.settings.currentRank || '';
+            document.getElementById('currentDivision').value = appData.settings.currentDivision || 'IV';
+            document.getElementById('currentLP').value = appData.settings.currentLP || 0;
+            document.getElementById('desiredRank').value = appData.settings.desiredRank || '';
+            document.getElementById('desiredDays').value = appData.settings.desiredDays || 10;
+            document.getElementById('dreamRank').value = appData.settings.dreamRank || '';
+            document.getElementById('dailyGamesTarget').value = appData.settings.dailyGamesTarget || 5;
+            
+            // Carregar notas
+            document.getElementById('notes').value = appData.notes || '';
+            document.getElementById('motivationMessage').value = appData.motivationMessage || '';
+            document.getElementById('motivationDisplay').textContent = appData.motivationMessage || '"A cada partida, você está mais próximo do seu objetivo!"';
+            
+            // Calcular estatísticas
+            updateStatistics();
+            
+            // Atualizar histórico
+            updateHistory();
+        }
+
+        function updateStatistics() {
+            const records = appData.dailyRecords;
+            
+            // Total de partidas
+            const totalGames = records.reduce((sum, r) => sum + r.gamesPlayed, 0);
+            const totalWins = records.reduce((sum, r) => sum + r.wins, 0);
+            const totalLosses = records.reduce((sum, r) => sum + r.losses, 0);
+            const totalLP = records.reduce((sum, r) => sum + r.lpChange, 0);
+            
+            // Taxa de vitória
+            const winRate = totalGames > 0 ? ((totalWins / totalGames) * 100).toFixed(1) : 0;
+            
+            // Média de LP por partida
+            const avgLP = totalGames > 0 ? (totalLP / totalGames).toFixed(1) : 0;
+            
+            // LP necessário para metas
+            const desiredLP = calculateTotalLP(
+                appData.settings.currentRank,
+                appData.settings.currentDivision,
+                appData.settings.currentLP,
+                appData.settings.desiredRank
+            );
+            
+            const dreamLP = calculateTotalLP(
+                appData.settings.currentRank,
+                appData.settings.currentDivision,
+                appData.settings.currentLP,
+                appData.settings.dreamRank
+            );
+            
+            // Progresso
+            const startLP = calculateTotalLP(
+                records[0]?.endDayRank || appData.settings.currentRank,
+                records[0]?.endDayDivision || appData.settings.currentDivision,
+                records[0]?.endDayLP || appData.settings.currentLP,
+                appData.settings.currentRank,
+                appData.settings.currentDivision,
+                appData.settings.currentLP
+            );
+            
+            const desiredProgress = desiredLP > 0 ? Math.min(100, (totalLP / desiredLP) * 100) : 0;
+            const dreamProgress = dreamLP > 0 ? Math.min(100, (totalLP / dreamLP) * 100) : 0;
+            
+            // Estimativa de dias
+            const daysToDesired = avgLP > 0 ? Math.ceil(desiredLP / (avgLP * appData.settings.dailyGamesTarget)) : '-';
+            
+            // Atualizar elementos
+            document.getElementById('totalGames').textContent = totalGames;
+            document.getElementById('winRate').textContent = winRate + '%';
+            document.getElementById('avgLP').textContent = avgLP;
+            document.getElementById('daysToDesired').textContent = daysToDesired;
+            
+            document.getElementById('desiredProgress').style.width = desiredProgress + '%';
+            document.getElementById('desiredProgress').textContent = desiredProgress.toFixed(1) + '%';
+            document.getElementById('desiredLP').textContent = `Faltam ${desiredLP} LP`;
+            
+            document.getElementById('dreamProgress').style.width = dreamProgress + '%';
+            document.getElementById('dreamProgress').textContent = dreamProgress.toFixed(1) + '%';
+            document.getElementById('dreamLP').textContent = `Faltam ${dreamLP} LP`;
+        }
+
+        function updateHistory() {
+            const historyList = document.getElementById('historyList');
+            const recentRecords = appData.dailyRecords.slice(-10).reverse();
+            
+            historyList.innerHTML = recentRecords.map(record => `
+                <div class="history-item">
+                    <span>${new Date(record.date).toLocaleDateString('pt-BR')}</span>
+                    <span>
+                        <span class="win">V: ${record.wins}</span> | 
+                        <span class="loss">D: ${record.losses}</span> | 
+                        LP: ${record.lpChange > 0 ? '+' : ''}${record.lpChange}
+                    </span>
+                </div>
+            `).join('');
+        }
+
+        // Gráfico
+        function drawChart() {
+            const canvas = document.getElementById('evolutionChart');
+            const ctx = canvas.getContext('2d');
+            
+            // Limpar canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (appData.dailyRecords.length === 0) {
+                ctx.fillStyle = '#cdbe91';
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Sem dados para exibir', canvas.width / 2, canvas.height / 2);
+                return;
+            }
+            
+            // Preparar dados
+            const records = appData.dailyRecords.slice(-30); // Últimos 30 registros
+            const lpHistory = [];
+            let cumulativeLP = 0;
+            
+            records.forEach(record => {
+                cumulativeLP += record.lpChange;
+                lpHistory.push(cumulativeLP);
+            });
+            
+            // Configurar canvas
+            const padding = 40;
+            const graphWidth = canvas.width - padding * 2;
+            const graphHeight = canvas.height - padding * 2;
+            
+            // Encontrar valores máximo e mínimo
+            const maxLP = Math.max(...lpHistory, 10);
+            const minLP = Math.min(...lpHistory, -10);
+            const range = maxLP - minLP;
+            
+            // Desenhar eixos
+            ctx.strokeStyle = '#3c4043';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, canvas.height - padding);
+            ctx.lineTo(canvas.width - padding, canvas.height - padding);
+            ctx.stroke();
+            
+            // Desenhar linha zero
+            const zeroY = canvas.height - padding - ((0 - minLP) / range) * graphHeight;
+            ctx.strokeStyle = '#5c5c5c';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(padding, zeroY);
+            ctx.lineTo(canvas.width - padding, zeroY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // Desenhar gráfico
+            if (lpHistory.length > 1) {
+                ctx.strokeStyle = '#c89b3c';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                
+                lpHistory.forEach((lp, index) => {
+                    const x = padding + (index / (lpHistory.length - 1)) * graphWidth;
+                    const y = canvas.height - padding - ((lp - minLP) / range) * graphHeight;
+                    
+                    if (index === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                    
+                    // Desenhar pontos
+                    ctx.fillStyle = lp >= 0 ? '#4caf50' : '#f44336';
+                    ctx.beginPath();
+                    ctx.arc(x, y, 4, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+                
+                ctx.stroke();
+            }
+            
+            // Labels
+            ctx.fillStyle = '#cdbe91';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Evolução de LP', canvas.width / 2, 20);
+        }
+
+        // Persistência de dados
+        function saveData() {
+            try {
+                localStorage.setItem('lolEloTracker', JSON.stringify(appData));
+                console.log('Dados salvos com sucesso!');
+            } catch (e) {
+                console.error('Erro ao salvar dados:', e);
+                alert('⚠️ Erro ao salvar dados no navegador. Considere exportar seus dados.');
+            }
+        }
+
+        function loadData() {
+            try {
+                const saved = localStorage.getItem('lolEloTracker');
+                if (saved) {
+                    appData = JSON.parse(saved);
+                    console.log('Dados carregados com sucesso!');
+                }
+            } catch (e) {
+                console.error('Erro ao carregar dados:', e);
+            }
+        }
+
+        // Exportar dados
+        function exportData() {
+            const dataStr = JSON.stringify(appData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `lol-elo-tracker-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+            alert('✅ Dados exportados com sucesso!');
+        }
+
+        // Importar dados
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    
+                    // Validar estrutura básica
+                    if (imported.settings && imported.dailyRecords) {
+                        if (confirm('⚠️ Isso substituirá todos os dados atuais. Deseja continuar?')) {
+                            appData = imported;
+                            saveData();
+                            updateUI();
+                            drawChart();
+                            alert('✅ Dados importados com sucesso!');
+                        }
+                    } else {
+                        alert('❌ Arquivo inválido!');
+                    }
+                } catch (error) {
+                    alert('❌ Erro ao importar arquivo: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Limpar histórico
+        function clearHistory() {
+            if (confirm('⚠️ Isso apagará todo o histórico de partidas. Deseja continuar?')) {
+                appData.dailyRecords = [];
+                saveData();
+                updateUI();
+                drawChart();
+                alert('✅ Histórico limpo!');
+            }
+        }
+
+        // Auto-save a cada 30 segundos
+        setInterval(saveData, 30000);
+
+        // Salvar ao fechar a página
+        window.addEventListener('beforeunload', saveData);
+    </script>
+</body>
+</html>
